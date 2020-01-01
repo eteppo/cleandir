@@ -35,7 +35,6 @@ flatten_directory() {
 }
 remove_empty_directories() {
     local empty_directories=($(ls -A $(find $global_root -empty -type d)))
-    echo "${#empty_directories[@]}"
     while [[ "${#empty_directories[@]}" != "1" ]]; do
         find $global_root -empty -type d -exec rm --dir '{}' +
     done
@@ -77,8 +76,9 @@ clean_directory() {
     # clean global root directory names
     global_root=$(echo "${input// /-}" | tr '[:upper:]' '[:lower:]')
     if [[ "$input" != "$global_root" ]]; then
+    	mkdir --parents "$global_root"
         mv -T "$input" "$global_root"
-    fi  
+    fi
     echo "Moving files to input directory..."
     flatten_directory "$global_root"
     echo -e "Files moved to input directory\n"
@@ -91,7 +91,7 @@ clean_directory() {
     echo "Organizing files by extension and last modification year..."
     organize_files "$global_root"
     echo -e "Files organized by extension and last modification year\n"
-    echo "Done"
+    echo -e "Done.\nResults in $global_root"
 }
 # run program
 clean_directory "$1"
