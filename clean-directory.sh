@@ -1,10 +1,11 @@
 #!/bin/bash
-# ARGUMENTS: FULL PATH TO ROOT DIRECTORY WITHOUT SLASH AT THE END
+
 flatten_directory() {
     local current_root=$1
     # loop through things in current root
     local things=($current_root/*)
     for thing in "${things[@]}"; do
+    	echo -ne "\r\033[0K$thing"
         # if thing is a directory
         if [[ -d "$thing" ]]; then
             # clean directory name if needed
@@ -33,17 +34,21 @@ flatten_directory() {
         fi
     done
 }
+
 remove_empty_directories() {
-    local empty_directories=($(ls -A $(find $global_root -empty -type d)))
-    while [[ "${#empty_directories[@]}" != "1" ]]; do
-        find $global_root -empty -type d -exec rm --dir '{}' +
-    done
+	local empty_count=$(find $global_root -empty -type d | wc -l)
+	while [[ "$empty_count" != "0" ]]; do
+		find $global_root -empty -type d -exec rm --dir '{}' +
+		local empty_count=$(find $global_root -empty -type d | wc -l)
+	done
 }
+
 remove_exact_duplicates() {
     local things=($global_root/*)
     # loop over files and remove if the same md5sum as before
     declare -A count_table
     for thing in "${things[@]}"; do
+    	echo -ne "\r\033[0K$thing"
         local checksum=($(md5sum $thing))
         # for first pass count is 1 (false), for next passes 2+ (true)
         if ((count_table[$checksum[0]]++)); then
@@ -52,14 +57,17 @@ remove_exact_duplicates() {
     done
     # remove name-conflict tags
     for thing in "${things[@]}"; do
+    	echo -ne "\r\033[0K$thing"
         if [[ "$thing" =~ "£" ]]; then
             mv -T "$thing" "${thing//£}"
         fi
     done
 }
+
 organize_files() {
     local files=($global_root/*)
     for file in "${files[@]}"; do
+    	echo -ne "\r\033[0K$file"
         local modification_time=($(stat --format=%y "$file"))
         local date=($(echo "${modification_time[0]//-/ }"))
         local year=$(echo $date)
@@ -70,7 +78,7 @@ organize_files() {
         mv -T "$file" "$filepath"
     done
 }
-# main function
+
 clean_directory() {
     local input=$1
     # clean global root directory names
@@ -81,17 +89,17 @@ clean_directory() {
     fi
     echo "Moving files to input directory..."
     flatten_directory "$global_root"
-    echo -e "Files moved to input directory\n"
+    echo -e "Files moved to input directory.\n"
     echo "Removing empty directories..."
     remove_empty_directories "$global_root"
-    echo -e "Empty directories removed\n"
+    echo -e "Empty directories removed.\n"
     echo "Removing exact duplicates..."
     remove_exact_duplicates "$global_root"
-    echo -e "Exact duplicates removed\n"
+    echo -e "Exact duplicates removed.\n"
     echo "Organizing files by extension and last modification year..."
     organize_files "$global_root"
-    echo -e "Files organized by extension and last modification year\n"
-    echo -e "Done.\nResults in $global_root"
+    echo -e "Files organized by extension and last modification year.\n"
+    echo -e "Done.\nResults in $global_root."
 }
-# run program
+
 clean_directory "$1"
