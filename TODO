@@ -1,0 +1,23 @@
+$ shellcheck myscript
+ 
+Line 64:
+    declare -A count_table
+               ^-- SC2034: count_table appears unused. Verify use (or export if used externally).
+ 
+Line 73:
+        checksum=$( md5sum "$thing" )
+        ^-- SC2034: checksum appears unused. Verify use (or export if used externally).
+ 
+Line 75:
+        if (( count_table[$checksum[0]]++ )); then
+           ^-- SC1105: Shells disambiguate (( differently or not at all. For subshell, add spaces around ( . For ((, fix parsing errors.
+              ^-- SC2211: This is a glob used as a command name. Was it supposed to be in ${..}, array, or is it missing quoting?
+ 
+Line 128:
+    n_files=$(ls --recursive --classify "$global_root" | grep -c \\*)
+              ^-- SC2010: Don't use ls | grep. Use a glob or a for loop with a condition to allow non-alphanumeric filenames.
+>>                                                               ^-- SC2062: Quote the grep pattern so the shell won't interpret it.
+
+$
+
+./cleandir/clean-directory.sh: rivi 159: odottamaton EOF (tiedostonloppu) odotettaessa sulkevaa ”"”
